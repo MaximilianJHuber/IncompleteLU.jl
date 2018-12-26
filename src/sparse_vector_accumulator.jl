@@ -22,16 +22,16 @@ length = 7
 curr = 1
 """
 mutable struct SparseVectorAccumulator{T}
-    occupied::Vector{Int}
-    nzind::Vector{Int}
+    occupied::Vector{Integer}
+    nzind::Vector{Integer}
     nzval::Vector{T}
-    nnz::Int
-    length::Int
-    curr::Int
+    nnz::Integer
+    length::Integer
+    curr::Integer
 
-    return SparseVectorAccumulator{T}(N::Int) where {T} = new(
-        zeros(Int, N),
-        Vector{Int}(undef, N),
+    return SparseVectorAccumulator{T}(N::Integer) where {T} = new(
+        zeros(Integer, N),
+        Vector{Integer}(undef, N),
         Vector{T}(undef, N),
         0,
         N,
@@ -49,7 +49,7 @@ end
 Add a part of a SparseMatrixCSC column to a SparseVectorAccumulator,
 starting at a given index until the end.
 """
-function axpy!(a::Tv, A::SparseMatrixCSC{Tv}, column::Int, start::Int, y::SparseVectorAccumulator{Tv}) where {Tv}
+function axpy!(a::Tv, A::SparseMatrixCSC{Tv}, column::Integer, start::Integer, y::SparseVectorAccumulator{Tv}) where {Tv}
     # Loop over the whole column of A
     @inbounds for idx = start : A.colptr[column + 1] - 1
         add!(y, a * A.nzval[idx], A.rowval[idx])
@@ -62,7 +62,7 @@ end
 Sets `v[idx] += a` when `idx` is occupied, or sets `v[idx] = a`.
 Complexity is O(1).
 """
-function add!(v::SparseVectorAccumulator{Tv}, a::Tv, idx::Int) where {Tv}
+function add!(v::SparseVectorAccumulator{Tv}, a::Tv, idx::Integer) where {Tv}
     @inbounds begin
         if isoccupied(v, idx)
             v.nzval[idx] += a
@@ -80,7 +80,7 @@ end
 """
 Check whether `idx` is nonzero.
 """
-@propagate_inbounds isoccupied(v::SparseVectorAccumulator, idx::Int) = v.occupied[idx] == v.curr
+@propagate_inbounds isoccupied(v::SparseVectorAccumulator, idx::Integer) = v.occupied[idx] == v.curr
 
 """
 Empty the SparseVectorAccumulator in O(1) operations.
@@ -92,7 +92,7 @@ end
 
 """
 Basically `A[:, j] = scale * drop(y)`, where drop removes
-values less than `drop`. Note: sorts the `nzind`'s of `y`, 
+values less than `drop`. Note: sorts the `nzind`'s of `y`,
 so that the column can be appended to a SparseMatrixCSC.
 
 Resets the `SparseVectorAccumulator`.
@@ -100,8 +100,8 @@ Resets the `SparseVectorAccumulator`.
 Note: does *not* update `A.colptr` for columns > j + 1,
 as that is done during the steps.
 """
-function append_col!(A::SparseMatrixCSC{Tv}, y::SparseVectorAccumulator{Tv}, j::Int, drop::Tv, scale::Tv = one(Tv)) where {Tv}
-    # Move the indices of interest up front
+function append_col!(A::SparseMatrixCSC{Tv}, y::SparseVectorAccumulator{Tv}, j::Integer, drop::Tv, scale::Tv = one(Tv)) where {Tv}
+    # Move the indices of Integererest up front
     total = 0
 
     @inbounds for idx = 1 : y.nnz
@@ -116,7 +116,7 @@ function append_col!(A::SparseMatrixCSC{Tv}, y::SparseVectorAccumulator{Tv}, j::
 
     # Sort the retained values.
     sort!(y.nzind, 1, total, Base.Sort.QuickSortAlg(), Base.Order.Forward)
-    
+
     @inbounds for idx = 1 : total
         row = y.nzind[idx]
         push!(A.rowval, row)
@@ -124,7 +124,7 @@ function append_col!(A::SparseMatrixCSC{Tv}, y::SparseVectorAccumulator{Tv}, j::
     end
 
     @inbounds A.colptr[j + 1] = A.colptr[j] + total
-    
+
     empty!(y)
 
     return nothing

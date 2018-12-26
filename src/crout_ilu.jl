@@ -19,7 +19,7 @@ function ilu(A::SparseMatrixCSC{T,I}; τ = 1e-3) where {T,I}
         ## Copy the new row into U_row and the new column into L_col
         ##
 
-        col::Int = first_in_row(A_reader, k)
+        col::Integer = first_in_row(A_reader, k)
 
         while is_column(col)
             add!(U_row, nzval(A_reader, col), col)
@@ -35,7 +35,7 @@ function ilu(A::SparseMatrixCSC{T,I}; τ = 1e-3) where {T,I}
             col = next_col
         end
 
-        # Copy the remaining part of the column into L_col
+        # Copy the remaining part of the column Integero L_col
         axpy!(one(T), A, k, nzidx(A_reader, k), L_col)
 
         ##

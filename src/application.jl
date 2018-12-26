@@ -25,7 +25,7 @@ function ldiv!(y::AbstractVector, F::ILUFactorization, x::AbstractVector)
 end
 
 """
-Applies in-place backward substitution with the U factor, under the assumptions: 
+Applies in-place backward substitution with the U factor, under the assumptions:
 
 1. U is stored transposed / row-wise
 2. U has no lower-triangular elements stored
