@@ -27,9 +27,9 @@ For the U-factor: insert in column `head` row `value`
     return l
 end
 
-struct RowReader{matT <: SparseMatrixCSC}
+struct RowReader{matT <: SparseMatrixCSC, G <: Integer}
     A::matT
-    next_in_column::Vector{Integer}
+    next_in_column::Vector{G}
     rows::LinkedLists
 end
 
