@@ -2,13 +2,13 @@ import Base: push!
 
 """
 The factor L is stored column-wise, but we need
-all nonzeros in row `row`. We already keep track of 
+all nonzeros in row `row`. We already keep track of
 the first nonzero in each column (at most `n` indices).
 Take `l = LinkedLists(n)`. Let `l.head[row]` be the column
 of some nonzero in row `row`. Then we can store the column
 of the next nonzero of row `row` in `l.next[l.head[row]]`, etc.
 That "spot" is empty and there will never be a conflict
-because as long as we only store the first nonzero per column: 
+because as long as we only store the first nonzero per column:
 the column is then a unique identifier.
 """
 struct LinkedLists
@@ -35,9 +35,9 @@ end
 
 function RowReader(A::SparseMatrixCSC{T,I}) where {T,I}
     n = size(A, 2)
-    @inbounds next_in_column = [A.colptr[i] for i = 1 : n]
+    @inbounds next_in_column = [A.colptr[i] for i = I(1) : I(n)]
     rows = LinkedLists(n)
-    @inbounds for i = 1 : n
+    @inbounds for i = I(1) : I(n)
         push!(rows, A.rowval[A.colptr[i]], i)
     end
     return RowReader(A, next_in_column, rows)
@@ -58,4 +58,3 @@ end
 @propagate_inbounds first_in_row(r::RowReader, row::Int) = r.rows.head[row]
 @propagate_inbounds is_column(column::Int) = column != 0
 @propagate_inbounds next_row!(r::RowReader, column::Int) = r.next_in_column[column] += 1
-

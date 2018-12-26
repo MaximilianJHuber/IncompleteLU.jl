@@ -49,7 +49,7 @@ Add without providing a previous index.
 
 function axpy!(a::Tv, A::SparseMatrixCSC{Tv}, column::Int, start::Int, y::InsertableSparseVector{Tv}) where {Tv}
     prev_index = y.indices.N
-    
+
     @inbounds for idx = start : A.colptr[column + 1] - 1
         add!(y, a * A.nzval[idx], A.rowval[idx], prev_index)
         prev_index = A.rowval[idx]
@@ -73,9 +73,9 @@ Note: does *not* update `A.colptr` for columns > j + 1,
 as that is done during the steps.
 """
 function append_col!(A::SparseMatrixCSC{Tv}, y::InsertableSparseVector{Tv}, j::Int, drop::Tv, scale::Tv = one(Tv)) where {Tv}
-    
+
     total = 0
-    
+
     @inbounds for row = y.indices
         if abs(y[row]) ≥ drop || row == j
             push!(A.rowval, row)
@@ -85,7 +85,7 @@ function append_col!(A::SparseMatrixCSC{Tv}, y::InsertableSparseVector{Tv}, j::I
     end
 
     @inbounds A.colptr[j + 1] = A.colptr[j] + total
-    
+
     empty!(y)
 
     nothing
