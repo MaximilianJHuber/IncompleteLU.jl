@@ -14,11 +14,11 @@ struct InsertableSparseVector{Tv}
     InsertableSparseVector{Tv}(n::Integer) where {Tv} = new(Vector{Tv}(undef, n), SortedSet(n))
 end
 
-@propagate_inbounds getindex(v::InsertableSparseVector{Tv,I}, idx::I) where {Tv,I} = v.values[idx]
-@propagate_inbounds setindex!(v::InsertableSparseVector{Tv,I}, value::Tv, idx::I) where {Tv,I} = v.values[idx] = value
+@propagate_inbounds getindex(v::InsertableSparseVector{Tv}, idx::I) where {Tv,I} = v.values[idx]
+@propagate_inbounds setindex!(v::InsertableSparseVector{Tv}, value::Tv, idx::I) where {Tv,I} = v.values[idx] = value
 @inline indices(v::InsertableSparseVector) = Vector(v.indices)
 
-function Vector(v::InsertableSparseVector{Tv,I}) where {Tv,I}
+function Vector(v::InsertableSparseVector{Tv}) where {Tv}
     vals = zeros(Tv, (v.indices.N - 1))
     for index in v.indices
         @inbounds vals[index] = v.values[index]
@@ -32,7 +32,7 @@ Complexity is O(nnz). The `prev_idx` can be used to start the linear
 search at `prev_idx`, useful when multiple already sorted values
 are added.
 """
-function add!(v::InsertableSparseVector{Tv,I}, a::Tv, idx::I, prev_idx::Integer) where {Tv,I}
+function add!(v::InsertableSparseVector{Tv}, a::Tv, idx::I, prev_idx::Integer) where {Tv,I}
     if push!(v.indices, idx, prev_idx)
         @inbounds v[idx] = a
     else
@@ -45,7 +45,7 @@ end
 """
 Add without providing a previous index.
 """
-@propagate_inbounds add!(v::InsertableSparseVector{Tv,I}, a::Tv, idx::I) where {Tv,I} = add!(v, a, idx, v.indices.N)
+@propagate_inbounds add!(v::InsertableSparseVector{Tv}, a::Tv, idx::I) where {Tv,I} = add!(v, a, idx, v.indices.N)
 
 function axpy!(a::Tv, A::SparseMatrixCSC{Tv,I}, column::Integer, start::Integer, y::InsertableSparseVector{Tv}) where {Tv,I}
     prev_index = y.indices.N
@@ -72,7 +72,7 @@ Resets the `InsertableSparseVector`.
 Note: does *not* update `A.colptr` for columns > j + 1,
 as that is done during the steps.
 """
-function append_col!(A::SparseMatrixCSC{Tv}, y::InsertableSparseVector{Tv}, j::Integer, drop::Tv, scale::Tv = one(Tv)) where {Tv}
+function append_col!(A::SparseMatrixCSC{Tv, I}, y::InsertableSparseVector{Tv}, j::Integer, drop::Tv, scale::Tv = one(Tv)) where {Tv}
 
     total = 0
 
