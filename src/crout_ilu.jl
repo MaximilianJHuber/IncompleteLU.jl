@@ -5,7 +5,7 @@ function ilu(A::SparseMatrixCSC{T,I}; τ = 1e-3) where {T,I}
 
     L = spzeros(T, n, n)
     U = spzeros(T, n, n)
-    
+
     U_row = SparseVectorAccumulator{T}(n)
     L_col = SparseVectorAccumulator{T}(n)
 
@@ -13,12 +13,12 @@ function ilu(A::SparseMatrixCSC{T,I}; τ = 1e-3) where {T,I}
     L_reader = RowReader(L, Val{false})
     U_reader = RowReader(U, Val{false})
 
-    @inbounds for k = 1 : n
+    @inbounds for k = I(1) : I(n)
 
         ##
         ## Copy the new row into U_row and the new column into L_col
         ##
- 
+
         col::Int = first_in_row(A_reader, k)
 
         while is_column(col)
@@ -41,10 +41,10 @@ function ilu(A::SparseMatrixCSC{T,I}; τ = 1e-3) where {T,I}
         ##
         ## Combine the vectors:
         ##
-        
+
         # U_row[k:n] -= L[k,i] * U[i,k:n] for i = 1 : k - 1
         col = first_in_row(L_reader, k)
-        
+
         while is_column(col)
             axpy!(-nzval(L_reader, col), U, col, nzidx(U_reader, col), U_row)
 
@@ -57,7 +57,7 @@ function ilu(A::SparseMatrixCSC{T,I}; τ = 1e-3) where {T,I}
 
             col = next_col
         end
-        
+
         # Nothing is happening here when k = n, maybe remove?
         # L_col[k+1:n] -= U[i,k] * L[i,k+1:n] for i = 1 : k - 1
         if k < n
@@ -77,14 +77,14 @@ function ilu(A::SparseMatrixCSC{T,I}; τ = 1e-3) where {T,I}
             end
         end
 
-        ## 
+        ##
         ## Apply a drop rule
         ##
 
         U_diag_element = U_row.nzval[k]
         # U_diag_element = U_row.values[k]
 
-        # Append the columns        
+        # Append the columns
         append_col!(U, U_row, k, τ)
         append_col!(L, L_col, k, τ, inv(U_diag_element))
 
